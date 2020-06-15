@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', true);
 mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology',true);
+mongoose.set('useUnifiedTopology', true);
 
 const Dishes = require('./models/dishes');
 const Promotions = require('./models/promotions');
@@ -34,29 +34,42 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890-09876-54321'));
 
-function auth (req, res, next) {
-  console.log(req.headers);
-  var authHeader = req.headers.authorization;
-  if (!authHeader) {
+function auth(req, res, next) {
+  console.log(req.signedCookies);
+  if (!req.signedCookies.user) {
+    var authHeader = req.headers.authorization;
+    if (!authHeader) {
       var err = new Error('You are not authenticated!');
       res.setHeader('WWW-Authenticate', 'Basic');
       err.status = 401;
       next(err);
       return;
-  }
+    }
 
-  var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-  var user = auth[0];
-  var pass = auth[1];
-  if (user == 'admin' && pass == 'password') {
+    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+    var user = auth[0];
+    var pass = auth[1];
+    if (user == 'admin' && pass == 'password') {
+      res.cookie('user', 'admin', {signed: true})
       next(); // authorized
-  } else {
+    } else {
       var err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');      
+      res.setHeader('WWW-Authenticate', 'Basic');
       err.status = 401;
       next(err);
+    }
+  }
+  else {
+    if (req.signedCookies.user === 'admin') {
+      next();
+    }
+    else {
+      var err = new Error('You are not authenticated!');
+      err.status = 401;
+      next(err);
+    }
   }
 }
 
