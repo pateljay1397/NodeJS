@@ -17,7 +17,7 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology',true);
 
 const Dishes = require('./models/dishes');
-
+const Promotions = require('./models/promotions');
 const url = 'mongodb://localhost:27017/conFusion';
 const connect = mongoose.connect(url);
 
