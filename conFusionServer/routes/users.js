@@ -98,4 +98,23 @@ router.get('/facebook/token', passport.authenticate('facebook-token'), (req, res
   }
 });
 
+router.get('/checkJWTtoken', cors.corsWithOptions, (req, res) => {
+  passport.authenticate('jwt', {session: false}, (err, user, info) => {
+    if (err)
+      return next(err);
+    
+    if (!user) {
+      res.statusCode = 401;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({status: 'JWT invalid!', success: false, err: info});
+    }
+    else {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({status: 'JWT valid!', success: true, user: user});
+
+    }
+  }) (req, res);
+});
+
 module.exports = router;
